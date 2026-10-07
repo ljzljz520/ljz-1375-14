@@ -1,0 +1,13 @@
+{
+  "name": "seasonal-food-data-service",
+  "version": "1.0.0",
+  "description": "时令美食数据编辑与查询服务：食材季节、摊位位置、营业段、临时停业与时空查询",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/core.test.js"
+  },
+  "engines": { "node": ">=18" },
+  "license": "MIT"
+}

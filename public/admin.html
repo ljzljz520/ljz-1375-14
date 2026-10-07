@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>后台 · 数据编辑与发布</title>
+<link rel="stylesheet" href="/css/app.css">
+<style>
+  .admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:1000px){.admin-grid{grid-template-columns:1fr}}
+  textarea{width:100%;min-height:120px;font-family:ui-monospace,Menlo,monospace;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:8px}
+  .rowline{font-size:12px;padding:6px 0;border-bottom:1px dashed var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .rowline b{font-size:13px}
+  .mini{padding:3px 9px;font-size:11px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer}
+  .mini.danger{color:var(--red);border-color:var(--red)}
+  .ver{color:var(--muted);font-size:11px}
+  table.log{width:100%;border-collapse:collapse;font-size:11px}
+  table.log th,table.log td{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top}
+  .conflict{background:#fdeede}
+  .hint{font-size:11px;color:var(--muted);margin:4px 0 8px}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .tabs button{border:1px solid var(--line);background:#fff;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:13px}
+  .tabs button.on{background:var(--red);color:#fff;border-color:var(--red)}
+  .tabpane{display:none}.tabpane.on{display:block}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>后台 · 数据编辑与发布</h1>
+  <span class="sub">编辑写入草稿；发布后索引/卡片/地图同代切换</span>
+  <nav><a href="/">访客视图</a><a href="/admin">后台</a><a href="/legacy/index.html">旧版文化站</a></nav>
+</header>
+
+<div class="wrap">
+  <div class="panel">
+    <label class="hint">编辑令牌（开发默认 dev-token，生产用环境变量 ADMIN_TOKEN）</label>
+    <input id="token" type="text" value="dev-token" style="width:260px;padding:7px;border:1px solid var(--line);border-radius:8px">
+    <input id="editor" type="text" placeholder="编辑姓名" value="值班编辑" style="width:160px;margin-left:8px;padding:7px;border:1px solid var(--line);border-radius:8px">
+    <span id="draft-info" class="ver" style="margin-left:12px"></span>
+  </div>
+
+  <div class="tabs">
+    <button data-tab="stalls" class="on">摊位 / 营业段 / 停业</button>
+    <button data-tab="ingredients">食材时令窗口</button>
+    <button data-tab="queues">排队采集快照</button>
+    <button data-tab="publish">发布与代际</button>
+    <button data-tab="log">编辑日志</button>
+  </div>
+
+  <!-- 摊位 -->
+  <section class="tabpane on" id="tab-stalls">
+    <div class="admin-grid">
+      <div class="panel" style="margin:0">
+        <h2>摊位草稿</h2>
+        <div class="hint">营业段 end 早于 start 自动为跨午夜（如 18:00–02:30）；临时停业带生效日期范围，即使早于正式公告也生效。</div>
+        <div id="stall-list"></div>
+      </div>
+      <div class="panel" style="margin:0">
+        <h2 id="stall-form-title">新增摊位</h2>
+        <textarea id="stall-json"></textarea>
+        <div class="hint" id="stall-version"></div>
+        <button class="btn" id="stall-save">保存（乐观锁 version）</button>
+        <button class="btn ghost" id="stall-new">清空为新增</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 食材 -->
+  <section class="tabpane" id="tab-ingredients">
+    <div class="admin-grid">
+      <div class="panel" style="margin:0">
+        <h2>食材与时令窗口</h2>
+        <div class="hint">窗口为显式 月-日 区间，可跨年（crossYear）、可按 region 差异化；没有“单月份”字段，也不得据此推断全年可买。region="*" 为全域默认。</div>
+        <div id="ing-list"></div>
+      </div>
+      <div class="panel" style="margin:0">
+        <h2 id="ing-form-title">新增食材</h2>
+        <textarea id="ing-json"></textarea>
+        <div class="hint">示例窗口：{"region":"xian-suburb","startMonth":9,"startDay":10,"endMonth":11,"endDay":20}</div>
+        <button class="btn" id="ing-save">保存</button>
+        <button class="btn ghost" id="ing-new">清空为新增</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 排队 -->
+  <section class="tabpane" id="tab-queues">
+    <div class="panel">
+      <h2>排队采集快照</h2>
+      <div class="hint">排队是“采集”事实：必须带 collectedAt 与 ttlMinutes；过期后访客端只显示采集时间，明确标注非实时。</div>
+      <div id="queue-list"></div>
+      <h2 style="margin-top:14px">录入采集</h2>
+      <textarea id="queue-json"></textarea>
+      <div style="margin-top:8px"><button class="btn" id="queue-save">录入快照</button></div>
+    </div>
+  </section>
+
+  <!-- 发布 -->
+  <section class="tabpane" id="tab-publish">
+    <div class="panel">
+      <h2>发布（索引 / 卡片 / 地图 同代切换）</h2>
+      <p class="hint">发布将冻结当前草稿为不可变代际：访客 API、统计、SVG 瓦片（ETag 含代际）立即统一切换；旧代际不被部分读取。</p>
+      <input id="pub-note" type="text" placeholder="发布说明，如：月底时令切换 + 新增临时停业" style="width:70%;padding:8px;border:1px solid var(--line);border-radius:8px">
+      <button class="btn" id="pub-btn" style="margin-left:8px">发布新一代</button>
+      <div id="pub-result" class="hint" style="margin-top:10px"></div>
+      <h2>离线包有效范围预览</h2>
+      <pre id="offline-preview" class="hint" style="white-space:pre-wrap"></pre>
+    </div>
+  </section>
+
+  <!-- 日志 -->
+  <section class="tabpane" id="tab-log">
+    <div class="panel">
+      <h2>编辑日志（含并发冲突）</h2>
+      <table class="log">
+        <thead><tr><th>时间</th><th>编辑</th><th>类型/对象</th><th>动作</th><th>说明</th><th>版本</th></tr></thead>
+        <tbody id="log-body"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<div class="flash" id="flash"></div>
+<script src="/js/admin.js"></script>
+</body>
+</html>

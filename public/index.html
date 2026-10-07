@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>时令美食 · 数据编辑与查询服务</title>
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="top">
+  <h1>时令美食数据服务</h1>
+  <span class="sub">食材季节 · 摊位位置 · 营业段 · 临时停业（访客视图）</span>
+  <nav>
+    <a href="/">访客地图 / 列表</a>
+    <a href="/admin">后台编辑与发布</a>
+    <a href="/legacy/index.html">旧版文化站</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <div class="panel">
+    <h2>筛选（地图与列表共享同一结果集）</h2>
+    <div class="filters">
+      <div>
+        <label>评估时间 at（不填=现在）</label>
+        <input id="f-at" type="datetime-local" step="60">
+      </div>
+      <div>
+        <label>地区</label>
+        <select id="f-region"><option value="">全部地区</option></select>
+      </div>
+      <div>
+        <label>食材（时令窗口按地区/跨年显式给出）</label>
+        <select id="f-ing"><option value="">全部食材</option></select>
+      </div>
+      <div>
+        <label>名称/地址搜索</label>
+        <input id="f-q" type="text" placeholder="如 永兴坊">
+      </div>
+      <div class="chk"><input type="checkbox" id="f-inseason"> <label for="f-inseason" style="margin:0">仅看在季供应</label></div>
+      <div class="chk"><input type="checkbox" id="f-open"> <label for="f-open" style="margin:0">仅看此刻营业中</label></div>
+      <div>
+        <button class="btn" id="btn-apply">应用筛选</button>
+        <button class="btn ghost" id="btn-reset">重置</button>
+      </div>
+    </div>
+    <div class="genbar" style="margin-top:10px">
+      <span id="gen-info">数据代际：—</span>
+      <span>评估于：<b id="eval-at">—</b></span>
+      <span class="note">在季≠营业：在季只说明食材时令，营业需按当天营业段与临时停业实时判定。</span>
+      <span style="margin-left:auto"><label class="note"><input type="checkbox" id="f-slow"> 模拟旧筛选请求晚到（1.2s 延迟）</label></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>聚合统计（以摊位身份去重；同坐标多摊不合并）</h2>
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <div class="layout">
+    <div class="panel" style="margin-bottom:0">
+      <h2>地图</h2>
+      <div class="mapbox" id="mapbox">
+        <svg id="map" role="img" aria-label="摊位地图"></svg>
+        <div class="map-controls">
+          <button id="zoom-in" aria-label="放大">＋</button>
+          <button id="zoom-out" aria-label="缩小">－</button>
+        </div>
+        <div class="map-legend">
+          <span class="dot" style="background:#2e7d32"></span>营业中
+          <span class="dot" style="background:#b26a00"></span>临时停业
+          <span class="dot" style="background:#9aa0a6"></span>非营业段
+        </div>
+        <div class="map-fail" id="map-fail">
+          <strong>瓦片加载失败</strong>
+          <span class="note">已降级为纯标记视图；卡片与列表数据不受影响。</span>
+          <button class="btn ghost" id="btn-retry-tile">重试瓦片</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:0">
+      <h2>摊位列表（与地图同筛选）<span class="note" id="list-count"></span></h2>
+      <div class="cards" id="cards"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>资料性路线参考</h2>
+    <ul class="routes" id="routes" style="margin:0;padding-left:18px"></ul>
+    <p class="note" style="margin:8px 0 0">路线仅为资料参考，不代表实时通行状况。</p>
+  </div>
+
+  <div class="panel">
+    <h2>离线包有效范围</h2>
+    <div id="offline" class="note">读取中…</div>
+  </div>
+</div>
+
+<footer>
+  本服务只提供数据编辑与查询；<b>不自动给出食品安全或营养结论</b>。排队数字为采集快照，过期后仅作历史参考。<br>
+  <a href="/api/offline/manifest">离线 manifest</a> · <a href="/api/offline/bundle">离线数据包</a>
+</footer>
+
+<div class="flash" id="flash"></div>
+<script src="/js/core.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>
