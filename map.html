@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时令美食地图 - 西安文化</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/map.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">西安·长兴坊</div>
+                <ul>
+                    <li><a href="index.html">历史背景</a></li>
+                    <li><a href="activities.html">民俗活动</a></li>
+                    <li><a href="travel.html">旅游指南</a></li>
+                    <li><a href="map.html">时令美食地图</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="section-title">
+            <h2>时令美食地图</h2>
+        </div>
+
+        <!-- 地图与列表共享同一组筛选条件 -->
+        <section class="filter-bar" aria-label="筛选条件">
+            <label>月份
+                <select id="f-month"></select>
+            </label>
+            <label>食材
+                <select id="f-ingredient"><option value="">全部</option></select>
+            </label>
+            <label>区域
+                <select id="f-region"><option value="">全部</option></select>
+            </label>
+            <label class="chk">
+                <input type="checkbox" id="f-opennow"> 只看当前营业
+            </label>
+            <span id="gen-badge" class="gen-badge"></span>
+        </section>
+
+        <div id="notice" class="notice" hidden></div>
+
+        <section class="map-wrap">
+            <svg id="map" viewBox="0 0 960 480" role="img" aria-label="摊位分布地图"></svg>
+            <aside id="detail" class="detail" hidden></aside>
+        </section>
+        <p class="map-hint">圆点数字为该网格内<b>不同摊位</b>的数量（同坐标多摊分别计数，不合并商户）。点击圆点查看摊位。</p>
+
+        <section>
+            <div class="section-title"><h2>摊位列表</h2></div>
+            <div id="list" class="card-grid"></div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 西安文化推广中心 | 时令信息仅供参考，以现场为准</p>
+            <p><a href="admin.html">数据维护后台</a></p>
+        </div>
+    </footer>
+    <script src="js/client-core.js"></script>
+    <script src="js/map.js"></script>
+</body>
+</html>

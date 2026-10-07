@@ -1,0 +1,11 @@
+{
+  "name": "seasonal-food-map-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "时令美食地图：数据编辑与查询服务（食材季节 / 摊位位置 / 营业段维护 + 访客地图与列表共享筛选）",
+  "scripts": {
+    "start": "node server/run.js",
+    "seed": "node server/seed.js --force",
+    "test": "node --test test/"
+  }
+}
